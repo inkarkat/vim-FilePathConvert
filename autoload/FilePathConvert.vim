@@ -64,7 +64,7 @@ function! FilePathConvert#RelativeToAbsolute( filespec )
     endtry
 endfunction
 
-function! s:IsOnDifferentRoots( filespecA, filespecB )
+function! s:IsOnDifferentRoots( filespecA, filespecB, pathSeparator )
     if ! (has('win32') || has('win64'))
 	return 0
     endif
@@ -73,24 +73,24 @@ function! s:IsOnDifferentRoots( filespecA, filespecB )
 	return 1
     endif
 
-    let l:ps = escape(ingofile#PathSeparator(), '\')
+    let l:ps = escape(a:pathSeparator, '\')
     if matchstr(a:filespecA, printf('^%s%s[^%s]\+', l:ps, l:ps, l:ps)) !=? matchstr(a:filespecB, printf('^%s%s[^%s]\+', l:ps, l:ps, l:ps))
 	return 1
     endif
 
     return 0
 endfunction
-function! s:HeadAndRest( filespec )
-    let l:ps = escape(ingofile#PathSeparator(), '\')
+function! s:HeadAndRest( filespec, pathSeparator )
+    let l:ps = escape(a:pathSeparator, '\')
     return [matchstr(a:filespec, printf('%s[^%s]*', l:ps, l:ps)), matchstr(a:filespec, printf('%s[^%s]*\zs.*$', l:ps, l:ps))]
 endfunction
-function! FilePathConvert#AbsoluteToRelative( filespec )
+function! FilePathConvert#AbsoluteToRelative( filespec, pathSeparator )
     let l:baseDirspec = s:GetBaseDir()
     if empty(l:baseDirspec)
 	throw 'Could not determine base dir!'
     endif
 
-    let l:absoluteDirspec = expand('%:p:h') . ingofile#PathSeparator()
+    let l:absoluteDirspec = expand('%:p:h') . a:pathSeparator
     if strpart(l:absoluteDirspec, 0, len(l:baseDirspec)) !=# l:baseDirspec
 	throw 'File outside of base dir: ' . l:baseDirspec
     endif
@@ -100,7 +100,7 @@ function! FilePathConvert#AbsoluteToRelative( filespec )
     let l:fromBaseDirspec = l:absoluteDirspec
     let l:absoluteFilespec = ingofile#NormalizePathSeparators(a:filespec)
 "****D echomsg '****' string(l:baseDirspec) string(l:absoluteFilespec) string(l:fromBaseDirspec)
-    if s:IsOnDifferentRoots(l:fromBaseDirspec, l:absoluteFilespec)
+    if s:IsOnDifferentRoots(l:fromBaseDirspec, l:absoluteFilespec, a:pathSeparator)
 	throw 'File has a different root'
     endif
     " Determine the directory where both diverge by stripping the head directory
@@ -109,8 +109,8 @@ function! FilePathConvert#AbsoluteToRelative( filespec )
     let l:absolute = l:absoluteFilespec
     while 1
 "****D echomsg '####' string(l:fromBase) string(l:absolute)
-	let [l:fromBaseHead, l:fromBaseRest] = s:HeadAndRest(l:fromBase)
-	let [l:absoluteHead, l:absoluteRest] = s:HeadAndRest(l:absolute)
+	let [l:fromBaseHead, l:fromBaseRest] = s:HeadAndRest(l:fromBase, a:pathSeparator)
+	let [l:absoluteHead, l:absoluteRest] = s:HeadAndRest(l:absolute, a:pathSeparator)
 "****D echomsg '####' string(l:fromBaseHead) string(l:absoluteHead)
 	if l:fromBaseHead ==# l:absoluteHead
 	    let l:fromBase = l:fromBaseRest
@@ -123,7 +123,7 @@ function! FilePathConvert#AbsoluteToRelative( filespec )
     " The remaining dirspec part of the current file must be traversed up to go
     " to the directory where both diverge. From there, traverse down what
     " remains of the stripped link filespec.
-    let l:dirUp = substitute(l:fromBase[1:], printf('[^%s]\+', escape(ingofile#PathSeparator(), '\')), '..', 'g')
+    let l:dirUp = substitute(l:fromBase[1:], printf('[^%s]\+', escape(a:pathSeparator, '\')), '..', 'g')
     let l:relativeFilespec = l:dirUp . l:absolute[1:]
 "****D echomsg '****' string(l:dirUp) string(l:relativeFilespec)
     return l:relativeFilespec
@@ -134,9 +134,9 @@ function! FilePathConvert#Do( text )
     if l:type ==# 'rel'
 	return FilePathConvert#RelativeToAbsolute(a:text)
     elseif l:type ==# 'abs'
-	return FilePathConvert#AbsoluteToRelative(a:text)
+	return FilePathConvert#AbsoluteToRelative(a:text, ingofile#PathSeparator())
     elseif l:type ==# 'url'
-	" TODO
+	throw 'TODO: not yet implemented'
     else
 	throw 'ASSERT: Unknown type ' . string(l:type)
     endif

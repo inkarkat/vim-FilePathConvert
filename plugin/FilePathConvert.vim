@@ -11,6 +11,12 @@
 " REVISION	DATE		REMARKS
 "	001	18-May-2012	file creation
 
+" Avoid installing twice or when in unsupported Vim version.
+if exists('g:loaded_FilePathConvert') || (v:version < 700)
+    finish
+endif
+let g:loaded_FilePathConvert = 1
+
 let s:fileSelection = [function('TextTransformSelections#QuotedInSingleLine'), function('FilePathConvert#FileSelection')]
 call TextTransform#MakeMappings('', '', 'FilePathConvert#Do', s:fileSelection)
 

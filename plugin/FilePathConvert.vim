@@ -9,6 +9,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	002	24-Jun-2012	Don't define the <Leader>sf default mapping in
+"				select mode, just visual mode.
 "	001	18-May-2012	file creation
 
 " Avoid installing twice or when in unsupported Vim version.
@@ -24,7 +26,7 @@ if ! hasmapto('<Plug>TextTFilePathConvert#DoLine', 'n')
     nmap <Leader>sf <Plug>TextTFilePathConvert#DoLine
 endif
 if ! hasmapto('<Plug>TextTFilePathConvert#DoVisual', 'v')
-    vmap <Leader>sf <Plug>TextTFilePathConvert#DoVisual
+    xmap <Leader>sf <Plug>TextTFilePathConvert#DoVisual
 endif
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

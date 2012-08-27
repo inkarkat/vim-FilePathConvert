@@ -11,6 +11,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   	003	12-Jun-2012	FIX: Do not clobber the global CWD when the
+"				buffer has a local CWD set.
 "	002	18-May-2012	Pass baseDir and pathSeparator into the
 "				functions.
 "				Improve variable names.
@@ -42,7 +44,8 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
 	" Need to change into the file's directory first to get glob results
 	" relative to the file.
 	let l:save_cwd = getcwd()
-	chdir! %:p:h
+	let l:chdirCommand = (haslocaldir() ? 'lchdir!' : 'chdir!')
+	execute l:chdirCommand '%:p:h'
     endif
     try
 	let l:relativeFilespec = ingofile#NormalizePathSeparators(a:filespec)
@@ -55,7 +58,7 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
 	endif
     finally
 	if exists('l:save_cwd')
-	    execute 'chdir!' escapings#fnameescape(l:save_cwd)
+	    execute l:chdirCommand escapings#fnameescape(l:save_cwd)
 	endif
     endtry
 endfunction

@@ -9,6 +9,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	004	28-Aug-2012	Rename algorithm function for better display by
+"				SubstitutionsHelp.vim.
 "	003	13-Aug-2012	FIX: Vim 7.0/1 need preloading of functions
 "				referenced in Funcrefs.
 "	002	24-Jun-2012	Don't define the <Leader>sf default mapping in
@@ -23,13 +25,13 @@ let g:loaded_FilePathConvert = 1
 
 if v:version < 702 | runtime autoload/TextTransformSelections.vim | runtime autoload/FilePathConvert.vim | endif  " The Funcref doesn't trigger the autoload in older Vim versions.
 let s:fileSelection = [function('TextTransformSelections#QuotedInSingleLine'), function('FilePathConvert#FileSelection')]
-call TextTransform#MakeMappings('', '', 'FilePathConvert#Do', s:fileSelection)
+call TextTransform#MakeMappings('', '', 'FilePathConvert#FilePathConvert', s:fileSelection)
 
-if ! hasmapto('<Plug>TextTFilePathConvert#DoLine', 'n')
-    nmap <Leader>sf <Plug>TextTFilePathConvert#DoLine
+if ! hasmapto('<Plug>TextTFilePathConvert#FilePathConvertLine', 'n')
+    nmap <Leader>sf <Plug>TextTFilePathConvert#FilePathConvertLine
 endif
-if ! hasmapto('<Plug>TextTFilePathConvert#DoVisual', 'v')
-    xmap <Leader>sf <Plug>TextTFilePathConvert#DoVisual
+if ! hasmapto('<Plug>TextTFilePathConvert#FilePathConvertVisual', 'v')
+    xmap <Leader>sf <Plug>TextTFilePathConvert#FilePathConvertVisual
 endif
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

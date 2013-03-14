@@ -1,0 +1,92 @@
+*FilePathConvert.txt*   Convert filespec between absolute, relative, and URL formats.
+
+		     FILE PATH CONVERT    by Ingo Karkat
+							 *FilePathConvert.vim*
+description			|FilePathConvert-description|
+usage				|FilePathConvert-usage|
+installation			|FilePathConvert-installation|
+configuration			|FilePathConvert-configuration|
+integration			|FilePathConvert-integration|
+limitations			|FilePathConvert-limitations|
+known problems			|FilePathConvert-known-problems|
+todo				|FilePathConvert-todo|
+history				|FilePathConvert-history|
+
+==============================================================================
+DESCRIPTION					 *FilePathConvert-description*
+
+This plugin converts a file path and name that is inserted into the buffer
+between absolute and relative paths. This is especially useful after pasting
+in or completing (|i_CTRL-X_CTRL-F|) filespecs.
+
+HOW IT WORKS								     *
+
+RELATED WORKS								     *
+
+==============================================================================
+USAGE						       *FilePathConvert-usage*
+						   *<Leader>sf* *v_<Leader>sf*
+<Leader>sf		Convert the file whose name is under or after the
+			cursor.
+{Visual}<Leader>sf	Convert the selected file.
+
+			A relative file path (../foo) is converted to an
+			absolute one (/home/user/dir/foo).
+			An absolute file path (/home/user/dir/foo) is
+			converted to a relative one (../foo).
+			On Windows, an absolute filespec starts with a drive
+			letter (C:\foo) or a file share in UNC notation
+			(\\host\share\foo).
+
+EXAMPLE						     *FilePathConvert-example*
+
+==============================================================================
+INSTALLATION					*FilePathConvert-installation*
+
+This script is packaged as a |vimball|. If you have the "gunzip" decompressor
+in your PATH, simply edit the *.vba.gz package in Vim; otherwise, decompress
+the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
+vimball or via the |:UseVimball| command. >
+    vim FilePathConvert.vba.gz
+    :so %
+To uninstall, use the |:RmVimball| command.
+
+DEPENDENCIES					*FilePathConvert-dependencies*
+
+- Requires Vim 7.0 or higher.
+- Requires the TextTransform plugin (vimscript #4005).
+
+==============================================================================
+CONFIGURATION				       *FilePathConvert-configuration*
+
+==============================================================================
+INTEGRATION					 *FilePathConvert-integration*
+
+==============================================================================
+LIMITATIONS					 *FilePathConvert-limitations*
+
+KNOWN PROBLEMS				      *FilePathConvert-known-problems*
+
+TODO							*FilePathConvert-todo*
+
+- Add conversion to / from file:// URLs, with a configurable base dir and URL
+  prefix.
+
+IDEAS						       *FilePathConvert-ideas*
+
+==============================================================================
+HISTORY						     *FilePathConvert-history*
+
+GOAL
+First published version.
+
+0.01	09-May-2012
+Started development.
+
+==============================================================================
+Copyright: (C) 2012 Ingo Karkat
+The VIM LICENSE applies to this script; see |copyright|.
+
+Maintainer:	Ingo Karkat <ingo@karkat.de>
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:

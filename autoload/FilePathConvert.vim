@@ -11,6 +11,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	004	28-Aug-2012	Rename algorithm function for better display by
+"				SubstitutionsHelp.vim.
 "   	003	12-Jun-2012	FIX: Do not clobber the global CWD when the
 "				buffer has a local CWD set.
 "	002	18-May-2012	Pass baseDir and pathSeparator into the
@@ -132,7 +134,7 @@ function! FilePathConvert#AbsoluteToRelative( baseDir, filespec )
     return l:relativeFilespec
 endfunction
 
-function! FilePathConvert#Do( text )
+function! FilePathConvert#FilePathConvert( text )
     let l:rootDir = ingofile#GetRootDir(expand('%:p:h'))
     let l:type = s:GetType(a:text)
 

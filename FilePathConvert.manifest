@@ -1,0 +1,6 @@
+autoload/escapings.vim
+autoload/ingofile.vim
+autoload/ingointegration.vim
+autoload/FilePathConvert.vim
+plugin/FilePathConvert.vim
+doc/FilePathConvert.txt

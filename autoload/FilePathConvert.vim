@@ -2,15 +2,16 @@
 "
 " DEPENDENCIES:
 "   - escapings.vim autoload script
-"   - ingofile.vim autoload script
+"   - ingo/fs/path.vim autoload script
 "   - ingointegration.vim autoload script
 "
-" Copyright: (C) 2012 Ingo Karkat
+" Copyright: (C) 2012-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	005	01-Jun-2013	Move ingofile.vim into ingo-library.
 "	004	28-Aug-2012	Rename algorithm function for better display by
 "				SubstitutionsHelp.vim.
 "   	003	12-Jun-2012	FIX: Do not clobber the global CWD when the
@@ -50,7 +51,7 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
 	execute l:chdirCommand '%:p:h'
     endif
     try
-	let l:relativeFilespec = ingofile#NormalizePathSeparators(a:filespec)
+	let l:relativeFilespec = ingo#fs#path#Normalize(a:filespec)
 	let l:absoluteFilespec = fnamemodify(l:relativeFilespec, ':p')
 "****D echomsg '****' string(a:baseDir) string(l:absoluteFilespec)
 	if strpart(l:absoluteFilespec, 0, len(a:baseDir)) ==# a:baseDir
@@ -67,7 +68,7 @@ endfunction
 
 function! s:NormalizeBaseDir( baseDir, filespec )
     let l:drive = matchstr(a:filespec, '^\a:')
-    return (empty(l:drive) ? ingofile#CombineToFilespec(a:baseDir, a:filespec) : a:filespec)
+    return (empty(l:drive) ? ingo#fs#path#Combine(a:baseDir, a:filespec) : a:filespec)
 endfunction
 function! s:NormalizeBase( filespec )
     return substitute(a:filespec, '^\a:', '', '')
@@ -95,7 +96,7 @@ function! s:HeadAndRest( filespec, pathSeparator )
     return [matchstr(a:filespec, printf('%s[^%s]*', l:ps, l:ps)), matchstr(a:filespec, printf('%s[^%s]*\zs.*$', l:ps, l:ps))]
 endfunction
 function! FilePathConvert#AbsoluteToRelative( baseDir, filespec )
-    let l:pathSeparator = ingofile#PathSeparator()
+    let l:pathSeparator = ingo#fs#path#Separator()
     let l:currentDirspec = expand('%:p:h') . l:pathSeparator
     if strpart(l:currentDirspec, 0, len(a:baseDir)) !=# a:baseDir
 	throw 'File outside of root dir: ' . a:baseDir
@@ -103,7 +104,7 @@ function! FilePathConvert#AbsoluteToRelative( baseDir, filespec )
 
     " To generate the relative filespec, we need the dirspec part of the current
     " buffer, and the absolute source filespec.
-    let l:absoluteFilespec = ingofile#NormalizePathSeparators(s:NormalizeBaseDir(ingofile#GetRootDir(getcwd()), a:filespec), l:pathSeparator)
+    let l:absoluteFilespec = ingo#fs#path#Normalize(s:NormalizeBaseDir(ingo#fs#path#GetRootDir(getcwd()), a:filespec), l:pathSeparator)
 "****D echomsg '****' string(a:baseDir) string(l:absoluteFilespec) string(l:currentDirspec)
     if s:IsOnDifferentRoots(l:currentDirspec, l:absoluteFilespec, l:pathSeparator)
 	throw 'File has a different root'
@@ -135,7 +136,7 @@ function! FilePathConvert#AbsoluteToRelative( baseDir, filespec )
 endfunction
 
 function! FilePathConvert#FilePathConvert( text )
-    let l:rootDir = ingofile#GetRootDir(expand('%:p:h'))
+    let l:rootDir = ingo#fs#path#GetRootDir(expand('%:p:h'))
     let l:type = s:GetType(a:text)
 
     if l:type ==# 'rel'

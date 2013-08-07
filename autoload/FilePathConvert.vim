@@ -3,7 +3,7 @@
 " DEPENDENCIES:
 "   - escapings.vim autoload script
 "   - ingo/fs/path.vim autoload script
-"   - ingointegration.vim autoload script
+"   - ingo/selection/frompattern.vim autoload script
 "
 " Copyright: (C) 2012-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -11,6 +11,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	006	23-Jul-2013	Move ingointegration#SelectCurrentRegexp() into
+"				ingo-library.
 "	005	01-Jun-2013	Move ingofile.vim into ingo-library.
 "	004	28-Aug-2012	Rename algorithm function for better display by
 "				SubstitutionsHelp.vim.
@@ -24,7 +26,7 @@
 "	001	18-May-2012	file creation
 
 function! FilePathConvert#FileSelection()
-    call ingointegration#SelectCurrentRegexp('v', '\f\+', line('.'))
+    call ingo#selection#frompattern#Select('v', '\f\+', line('.'))
     return 1
 endfunction
 

@@ -1,7 +1,7 @@
 " FilePathConvert.vim: Convert filespec between absolute, relative, and URL formats.
 "
 " DEPENDENCIES:
-"   - escapings.vim autoload script
+"   - ingo/compat.vim autoload script
 "   - ingo/fs/path.vim autoload script
 "   - ingo/selection/frompattern.vim autoload script
 "
@@ -11,6 +11,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	007	08-Aug-2013	Move escapings.vim into ingo-library.
 "	006	23-Jul-2013	Move ingointegration#SelectCurrentRegexp() into
 "				ingo-library.
 "	005	01-Jun-2013	Move ingofile.vim into ingo-library.
@@ -63,7 +64,7 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
 	endif
     finally
 	if exists('l:save_cwd')
-	    execute l:chdirCommand escapings#fnameescape(l:save_cwd)
+	    execute l:chdirCommand ingo#compat#fnameescape(l:save_cwd)
 	endif
     endtry
 endfunction

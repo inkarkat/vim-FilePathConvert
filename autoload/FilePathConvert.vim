@@ -3,6 +3,7 @@
 " DEPENDENCIES:
 "   - ingo/compat.vim autoload script
 "   - ingo/fs/path.vim autoload script
+"   - ingo/os.vim autoload script
 "   - ingo/selection/frompattern.vim autoload script
 "
 " Copyright: (C) 2012-2013 Ingo Karkat
@@ -11,6 +12,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   	008	13-Sep-2013	Use operating system detection functions from
+"				ingo/os.vim.
 "	007	08-Aug-2013	Move escapings.vim into ingo-library.
 "	006	23-Jul-2013	Move ingointegration#SelectCurrentRegexp() into
 "				ingo-library.
@@ -32,7 +35,7 @@ function! FilePathConvert#FileSelection()
 endfunction
 
 function! s:GetType( filespec )
-    if a:filespec =~# '^[/\\][^/\\]' || ((has('win32') || has('win64')) && a:filespec =~? '^\a:[/\\]')
+    if a:filespec =~# '^[/\\][^/\\]' || (ingo#os#IsWinOrDos() && a:filespec =~? '^\a:[/\\]')
 	return 'abs'
     elseif a:filespec =~? '^[a-z+.-]\+:' " RFC 1738
 	return 'url'
@@ -77,7 +80,7 @@ function! s:NormalizeBase( filespec )
     return substitute(a:filespec, '^\a:', '', '')
 endfunction
 function! s:IsOnDifferentRoots( filespecA, filespecB, pathSeparator )
-    if ! (has('win32') || has('win64'))
+    if ! ingo#os#IsWinOrDos()
 	return 0
     endif
 

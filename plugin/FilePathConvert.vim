@@ -30,7 +30,7 @@ call TextTransform#MakeMappings('', '', 'FilePathConvert#FilePathConvert', s:fil
 if ! hasmapto('<Plug>TextTFilePathConvert#FilePathConvertLine', 'n')
     nmap <Leader>sf <Plug>TextTFilePathConvert#FilePathConvertLine
 endif
-if ! hasmapto('<Plug>TextTFilePathConvert#FilePathConvertVisual', 'v')
+if ! hasmapto('<Plug>TextTFilePathConvert#FilePathConvertVisual', 'x')
     xmap <Leader>sf <Plug>TextTFilePathConvert#FilePathConvertVisual
 endif
 

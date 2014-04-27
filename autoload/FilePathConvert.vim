@@ -6,13 +6,13 @@
 "   - ingo/os.vim autoload script
 "   - ingo/selection/frompattern.vim autoload script
 "
-" Copyright: (C) 2012-2013 Ingo Karkat
+" Copyright: (C) 2012-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"   	008	13-Sep-2013	Use operating system detection functions from
+"   1.00.008	13-Sep-2013	Use operating system detection functions from
 "				ingo/os.vim.
 "	007	08-Aug-2013	Move escapings.vim into ingo-library.
 "	006	23-Jul-2013	Move ingointegration#SelectCurrentRegexp() into
@@ -28,6 +28,8 @@
 "				Handle implicit current drive letter in absolute
 "				paths.
 "	001	18-May-2012	file creation
+let s:save_cpo = &cpo
+set cpo&vim
 
 function! FilePathConvert#FileSelection()
     call ingo#selection#frompattern#Select('v', '\f\+', line('.'))
@@ -99,7 +101,10 @@ function! s:IsOnDifferentRoots( filespecA, filespecB, pathSeparator )
 endfunction
 function! s:HeadAndRest( filespec, pathSeparator )
     let l:ps = escape(a:pathSeparator, '\')
-    return [matchstr(a:filespec, printf('%s[^%s]*', l:ps, l:ps)), matchstr(a:filespec, printf('%s[^%s]*\zs.*$', l:ps, l:ps))]
+    return [
+    \   matchstr(a:filespec, printf('%s[^%s]*', l:ps, l:ps)),
+    \   matchstr(a:filespec, printf('%s[^%s]*\zs.*$', l:ps, l:ps))
+    \]
 endfunction
 function! FilePathConvert#AbsoluteToRelative( baseDir, filespec )
     let l:pathSeparator = ingo#fs#path#Separator()
@@ -156,4 +161,6 @@ function! FilePathConvert#FilePathConvert( text )
     endif
 endfunction
 
+let &cpo = s:save_cpo
+unlet s:save_cpo
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

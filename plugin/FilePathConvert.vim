@@ -25,7 +25,7 @@ if exists('g:loaded_FilePathConvert') || (v:version < 700)
 endif
 let g:loaded_FilePathConvert = 1
 
-if v:version < 702 | runtime autoload/TextTransformSelections.vim | runtime autoload/FilePathConvert.vim | endif  " The Funcref doesn't trigger the autoload in older Vim versions.
+if v:version < 702 | runtime autoload/TextTransform/Selections.vim | runtime autoload/FilePathConvert.vim | endif  " The Funcref doesn't trigger the autoload in older Vim versions.
 let s:fileSelection = [function('TextTransform#Selections#QuotedInSingleLine'), function('FilePathConvert#FileSelection')]
 call TextTransform#MakeMappings('', '', 'FilePathConvert#FilePathConvert', s:fileSelection)
 

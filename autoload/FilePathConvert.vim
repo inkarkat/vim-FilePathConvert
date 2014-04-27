@@ -5,6 +5,7 @@
 "   - ingo/fs/path.vim autoload script
 "   - ingo/os.vim autoload script
 "   - ingo/selection/frompattern.vim autoload script
+"   - subs/URL.vim autoload script
 "
 " Copyright: (C) 2012-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -12,6 +13,10 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.009	28-Apr-2014	Duplicate FilePathConvert#FilePathConvert() into
+"				FilePathConvert#ToLocal() and
+"				FilePathConvert#ToGlobal() to support file://
+"				URLs.
 "   1.00.008	13-Sep-2013	Use operating system detection functions from
 "				ingo/os.vim.
 "	007	08-Aug-2013	Move escapings.vim into ingo-library.
@@ -37,7 +42,7 @@ function! FilePathConvert#FileSelection()
 endfunction
 
 function! s:GetType( filespec )
-    if a:filespec =~# '^[/\\][^/\\]' || (ingo#os#IsWinOrDos() && a:filespec =~? '^\a:[/\\]')
+    if a:filespec =~# '^[/\\]' || (ingo#os#IsWinOrDos() && a:filespec =~? '^\a:[/\\]')
 	return 'abs'
     elseif a:filespec =~? '^[a-z+.-]\+:' " RFC 1738
 	return 'url'
@@ -45,6 +50,7 @@ function! s:GetType( filespec )
 	return 'rel'
     endif
 endfunction
+
 
 function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
     if s:GetType(a:filespec) !=# 'rel'
@@ -74,9 +80,12 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
     endtry
 endfunction
 
+
 function! s:NormalizeBaseDir( baseDir, filespec )
-    let l:drive = matchstr(a:filespec, '^\a:')
-    return (empty(l:drive) ? ingo#fs#path#Combine(a:baseDir, a:filespec) : a:filespec)
+    return ((! ingo#os#IsWinOrDos() || a:filespec =~# '^\a:\|^[/\\]\{2}[^/\\]') ?
+    \   a:filespec :
+    \   ingo#fs#path#Combine(a:baseDir, a:filespec)
+    \)
 endfunction
 function! s:NormalizeBase( filespec )
     return substitute(a:filespec, '^\a:', '', '')
@@ -146,19 +155,47 @@ function! FilePathConvert#AbsoluteToRelative( baseDir, filespec )
     return l:relativeFilespec
 endfunction
 
-function! FilePathConvert#FilePathConvert( text )
+
+function! FilePathConvert#AbsoluteToUrl( baseDir, filespec )
+    if a:filespec =~# '^[/\\]\{2}[^/\\]'
+	return 'file:///' . subs#URL#FilespecEncode(a:filespec)
+    else
+	" TODO
+    endif
+endfunction
+function! FilePathConvert#UrlToAbsolute( baseDir, filespec )
+    if a:filespec =~? '^[a-z+.-]\+://' " RFC 1738
+	return ingo#fs#path#Normalize('//' . subs#URL#Decode(matchstr(a:filespec, '^[a-z+.-]\+:/\+\zs.*$')))
+    else
+	" TODO
+    endif
+endfunction
+
+
+
+function! s:FilePathConvert( isToLocal, text )
     let l:rootDir = ingo#fs#path#GetRootDir(expand('%:p:h'))
     let l:type = s:GetType(a:text)
 
     if l:type ==# 'rel'
 	return FilePathConvert#RelativeToAbsolute(l:rootDir, a:text)
     elseif l:type ==# 'abs'
-	return FilePathConvert#AbsoluteToRelative(l:rootDir, a:text)
+	if a:isToLocal
+	    return FilePathConvert#AbsoluteToRelative(l:rootDir, a:text)
+	else
+	    return FilePathConvert#AbsoluteToUrl(l:rootDir, a:text)
+	endif
     elseif l:type ==# 'url'
-	throw 'TODO: not yet implemented'
+	return FilePathConvert#UrlToAbsolute(l:rootDir, a:text)
     else
 	throw 'ASSERT: Unknown type ' . string(l:type)
     endif
+endfunction
+function! FilePathConvert#ToLocal( text )
+    return s:FilePathConvert(1, a:text)
+endfunction
+function! FilePathConvert#ToGlobal( text )
+    return s:FilePathConvert(0, a:text)
 endfunction
 
 let &cpo = s:save_cpo

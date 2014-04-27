@@ -40,9 +40,11 @@ function! FilePathConvert#FileSelection()
     call ingo#selection#frompattern#Select('v', '\f\+', line('.'))
     return 1
 endfunction
-
+let s:uncPathExpr = '^[/\\]\{2}[^/\\]'
 function! s:GetType( filespec )
-    if a:filespec =~# '^[/\\]' || (ingo#os#IsWinOrDos() && a:filespec =~? '^\a:[/\\]')
+    if a:filespec =~# s:uncPathExpr  " UNC notation
+	return 'unc'
+    elseif a:filespec =~# '^[/\\]' || (ingo#os#IsWinOrDos() && a:filespec =~? '^\a:[/\\]')
 	return 'abs'
     elseif a:filespec =~? '^[a-z+.-]\+:' " RFC 1738
 	return 'url'
@@ -82,7 +84,7 @@ endfunction
 
 
 function! s:NormalizeBaseDir( baseDir, filespec )
-    return ((! ingo#os#IsWinOrDos() || a:filespec =~# '^\a:\|^[/\\]\{2}[^/\\]') ?
+    return ((! ingo#os#IsWinOrDos() || a:filespec =~# '^\a:\|' . s:uncPathExpr) ?
     \   a:filespec :
     \   ingo#fs#path#Combine(a:baseDir, a:filespec)
     \)
@@ -156,19 +158,48 @@ function! FilePathConvert#AbsoluteToRelative( baseDir, filespec )
 endfunction
 
 
-function! FilePathConvert#AbsoluteToUrl( baseDir, filespec )
-    if a:filespec =~# '^[/\\]\{2}[^/\\]'
-	return 'file:///' . subs#URL#FilespecEncode(a:filespec)
-    else
-	" TODO
+function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
+    " TODO: Search url mapping values, use matching key.
+endfunction
+
+function! FilePathConvert#UncToUrl( baseDir, filespec )
+    return 'file:///' . subs#URL#FilespecEncode(a:filespec)
+endfunction
+
+function! s:UrlMappingToAbsolute( filespec )
+    for l:baseUrl in keys(g:FilePathConvert_UrlMappings)
+	let l:baseUrlPrefix = ingo#fs#path#Combine(l:baseUrl, '')
+	if ingo#str#StartsWith(a:filespec, l:baseUrlPrefix)
+	    let l:urlRest = strpart(a:filespec, len(l:baseUrlPrefix))
+	    let l:absoluteFilespec = ingo#fs#path#Combine(
+	    \   g:FilePathConvert_UrlMappings[l:baseUrl].filespec,
+	    \   subs#URL#Decode(l:urlRest)
+	    \)
+	    return ingo#fs#path#Normalize(l:absoluteFilespec)
+	endif
+    endfor
+
+    return ''
+endfunction
+function! FilePathConvert#UncToAbsolute( baseDir, filespec )
+    let l:absoluteFilespec = s:UrlMappingToAbsolute(a:filespec)
+    if empty(l:absoluteFilespec)
+	throw 'No URL mapping defined for UNC path ' . a:filespec
     endif
+    return l:absoluteFilespec
 endfunction
 function! FilePathConvert#UrlToAbsolute( baseDir, filespec )
-    if a:filespec =~? '^[a-z+.-]\+://' " RFC 1738
-	return ingo#fs#path#Normalize('//' . subs#URL#Decode(matchstr(a:filespec, '^[a-z+.-]\+:/\+\zs.*$')))
-    else
-	" TODO
+    let l:absoluteFilespec = s:UrlMappingToAbsolute(a:filespec)
+    if ! empty(l:absoluteFilespec)
+	return l:absoluteFilespec
     endif
+
+    " Fallback: Convert file: URLs to UNC path.
+    if a:filespec =~# '^file://'
+	return ingo#fs#path#Normalize('//' . subs#URL#Decode(matchstr(a:filespec, '^[a-z+.-]\+:/\+\zs.*$')))
+    endif
+
+    throw 'No URL mapping defined for URL ' . a:filespec
 endfunction
 
 
@@ -183,7 +214,13 @@ function! s:FilePathConvert( isToLocal, text )
 	if a:isToLocal
 	    return FilePathConvert#AbsoluteToRelative(l:rootDir, a:text)
 	else
-	    return FilePathConvert#AbsoluteToUrl(l:rootDir, a:text)
+	    return FilePathConvert#AbsoluteToUncOrUrl(l:rootDir, a:text)
+	endif
+    elseif l:type ==# 'unc'
+	if a:isToLocal
+	    return FilePathConvert#UncToAbsolute(l:rootDir, a:text)
+	else
+	    return FilePathConvert#UncToUrl(l:rootDir, a:text)
 	endif
     elseif l:type ==# 'url'
 	return FilePathConvert#UrlToAbsolute(l:rootDir, a:text)

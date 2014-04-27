@@ -6,7 +6,6 @@ description			|FilePathConvert-description|
 usage				|FilePathConvert-usage|
 installation			|FilePathConvert-installation|
 configuration			|FilePathConvert-configuration|
-integration			|FilePathConvert-integration|
 limitations			|FilePathConvert-limitations|
 known problems			|FilePathConvert-known-problems|
 todo				|FilePathConvert-todo|
@@ -19,16 +18,17 @@ This plugin converts a file path and name that is inserted into the buffer
 between absolute and relative paths. This is especially useful after pasting
 in or completing (|i_CTRL-X_CTRL-F|) filespecs.
 
-HOW IT WORKS								     *
-
 RELATED WORKS								     *
+
+- html_FileCompletion.vim (vimscript #4070) is insert mode completion of
+  URL-escaped file links relative to a document root and base URL.
 
 ==============================================================================
 USAGE						       *FilePathConvert-usage*
 						   *<Leader>sf* *v_<Leader>sf*
 <Leader>sf		Convert the file whose name is under or after the
 			cursor.
-{Visual}<Leader>sf	Convert the selected file.
+{Visual}<Leader>sf	Convert the selected file name.
 
 			A relative file path (../foo) is converted to an
 			absolute one (/home/user/dir/foo).
@@ -39,6 +39,18 @@ USAGE						       *FilePathConvert-usage*
 			(\\host\share\foo).
 
 EXAMPLE						     *FilePathConvert-example*
+
+Here's a simple illustration: >
+    :cd C:\Windows\Temp
+    :edit test.txt
+The text
+    C:\Windows\System32\drivers\etc\hosts ~
+is turned into:
+    ..\System32\drivers\etc\hosts ~
+and
+    Cookies\index.dat ~
+is turned into:
+    C:\Windows\Temp\Cookies\index.dat ~
 
 ==============================================================================
 INSTALLATION					*FilePathConvert-installation*
@@ -56,14 +68,19 @@ DEPENDENCIES					*FilePathConvert-dependencies*
 - Requires Vim 7.0 or higher.
 - Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.012 or
   higher.
-- Requires the TextTransform plugin (vimscript #4005).
+- Requires the TextTransform plugin (vimscript #4005), version 1.22 or higher.
 
 ==============================================================================
 CONFIGURATION				       *FilePathConvert-configuration*
 
-==============================================================================
-INTEGRATION					 *FilePathConvert-integration*
-
+For a permanent configuration, put the following commands into your |vimrc|:
+						       *FilePathConvert-remap*
+If you want to use different mappings, map your keys to the
+<Plug>TextTFilePathConvert#... mapping targets _before_ sourcing the script
+(e.g. in your |vimrc|): >
+    nmap <Leader>sf <Plug>TextTFilePathConvert#FilePathConvertLine
+    xmap <Leader>sf <Plug>TextTFilePathConvert#FilePathConvertVisual
+<
 ==============================================================================
 LIMITATIONS					 *FilePathConvert-limitations*
 
@@ -79,14 +96,14 @@ IDEAS						       *FilePathConvert-ideas*
 ==============================================================================
 HISTORY						     *FilePathConvert-history*
 
-GOAL
+1.00	06-Mar-2014
 First published version.
 
 0.01	09-May-2012
 Started development.
 
 ==============================================================================
-Copyright: (C) 2012-2013 Ingo Karkat
+Copyright: (C) 2012-2014 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>

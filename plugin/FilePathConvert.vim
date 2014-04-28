@@ -9,6 +9,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.006	28-Apr-2014	Add <Leader>sF variant that converts into more
+"				global filespecs to support file:// URLs.
 "   1.00.005	06-Mar-2014	TextTransformSelections.vim has been moved into
 "				the TextTransform plugin.
 "	004	28-Aug-2012	Rename algorithm function for better display by
@@ -25,15 +27,35 @@ if exists('g:loaded_FilePathConvert') || (v:version < 700)
 endif
 let g:loaded_FilePathConvert = 1
 
+"- configuration ---------------------------------------------------------------
+
+if ! exists('g:FilePathConvert_UrlMappings')
+    let g:FilePathConvert_UrlMappings = {
+    \   '//sake/install$': {'filespec': 'D:\install'},
+    \   '//wotan/www': {'filespec': 'W:\'},
+    \   'http://wotan/': {'filespec': 'W:\htdocs'},
+    \}
+endif
+
+
+"- mappings --------------------------------------------------------------------
+
 if v:version < 702 | runtime autoload/TextTransform/Selections.vim | runtime autoload/FilePathConvert.vim | endif  " The Funcref doesn't trigger the autoload in older Vim versions.
 let s:fileSelection = [function('TextTransform#Selections#QuotedInSingleLine'), function('FilePathConvert#FileSelection')]
-call TextTransform#MakeMappings('', '', 'FilePathConvert#FilePathConvert', s:fileSelection)
+call TextTransform#MakeMappings('', '', 'FilePathConvert#ToLocal', s:fileSelection)
+call TextTransform#MakeMappings('', '', 'FilePathConvert#ToGlobal', s:fileSelection)
 
-if ! hasmapto('<Plug>TextTFilePathConvert#FilePathConvertLine', 'n')
-    nmap <Leader>sf <Plug>TextTFilePathConvert#FilePathConvertLine
+if ! hasmapto('<Plug>TextTFilePathConvert#ToLocalLine', 'n')
+    nmap <Leader>sf <Plug>TextTFilePathConvert#ToLocalLine
 endif
-if ! hasmapto('<Plug>TextTFilePathConvert#FilePathConvertVisual', 'x')
-    xmap <Leader>sf <Plug>TextTFilePathConvert#FilePathConvertVisual
+if ! hasmapto('<Plug>TextTFilePathConvert#ToLocalVisual', 'x')
+    xmap <Leader>sf <Plug>TextTFilePathConvert#ToLocalVisual
+endif
+if ! hasmapto('<Plug>TextTFilePathConvert#ToGlobalLine', 'n')
+    nmap <Leader>sF <Plug>TextTFilePathConvert#ToGlobalLine
+endif
+if ! hasmapto('<Plug>TextTFilePathConvert#ToGlobalVisual', 'x')
+    xmap <Leader>sF <Plug>TextTFilePathConvert#ToGlobalVisual
 endif
 
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :

@@ -1,10 +1,12 @@
 " FilePathConvert.vim: Convert filespec between absolute, relative, and URL formats.
 "
 " DEPENDENCIES:
+"   - ingo/avoidprompt.vim autoload script
 "   - ingo/compat.vim autoload script
 "   - ingo/fs/path.vim autoload script
 "   - ingo/os.vim autoload script
 "   - ingo/selection/frompattern.vim autoload script
+"   - ingo/str.vim autoload script
 "   - subs/URL.vim autoload script
 "
 " Copyright: (C) 2012-2014 Ingo Karkat
@@ -159,7 +161,21 @@ endfunction
 
 
 function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
-    " TODO: Search url mapping values, use matching key.
+    " Search URL mapping values, use matching key.
+    let l:filespec = ingo#fs#path#Combine(ingo#fs#path#Normalize(a:filespec), '')
+
+    let l:urls = []
+    for l:baseUrl in keys(g:FilePathConvert_UrlMappings)
+	let l:urlMapping = g:FilePathConvert_UrlMappings[l:baseUrl]
+	let l:urlFilespecPrefix = ingo#fs#path#Combine(ingo#fs#path#Normalize(l:urlMapping.filespec, '/'), '')
+	if ingo#str#StartsWith(l:filespec, l:urlFilespecPrefix)
+	    let l:url = ingo#fs#path#Combine(l:baseUrl, subs#URL#FilespecEncode(strpart(l:filespec, len(l:urlFilespecPrefix))))
+	    call add(l:urls, l:url)
+	endif
+    endfor
+
+echomsg '****' string(l:urls)
+    return get(l:urls, 0, '')
 endfunction
 
 function! FilePathConvert#UncToUrl( baseDir, filespec )
@@ -167,9 +183,10 @@ function! FilePathConvert#UncToUrl( baseDir, filespec )
 endfunction
 
 function! s:UrlMappingToAbsolute( filespec )
+    " Search URL mapping keys, use matching value.
     for l:baseUrl in keys(g:FilePathConvert_UrlMappings)
 	let l:baseUrlPrefix = ingo#fs#path#Combine(l:baseUrl, '')
-	if ingo#str#StartsWith(a:filespec, l:baseUrlPrefix)
+	if ingo#str#StartsWith(ingo#fs#path#Normalize(a:filespec, '/'), ingo#fs#path#Normalize(l:baseUrlPrefix, '/'))
 	    let l:urlRest = strpart(a:filespec, len(l:baseUrlPrefix))
 	    let l:absoluteFilespec = ingo#fs#path#Combine(
 	    \   g:FilePathConvert_UrlMappings[l:baseUrl].filespec,
@@ -196,6 +213,7 @@ function! FilePathConvert#UrlToAbsolute( baseDir, filespec )
 
     " Fallback: Convert file: URLs to UNC path.
     if a:filespec =~# '^file://'
+	call ingo#msg#WarningMsg(ingo#avoidprompt#Truncate('No URL mappings defined for URL ' . a:filespec . '; converting to UNC path'))
 	return ingo#fs#path#Normalize('//' . subs#URL#Decode(matchstr(a:filespec, '^[a-z+.-]\+:/\+\zs.*$')))
     endif
 

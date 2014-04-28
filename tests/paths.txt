@@ -1,0 +1,10 @@
+\\sake\install$\Applications\totalcmd\Total Commander.url
+\\sake\install$\Applications\totalcmd\ingo\sake\tcignore.txt
+
+\\suopfileshare01.bbn.hp.com\HPSW_BBN_teams\TeamPhil\IngoKarkat\bugs\ALM\capture_20140425-161757.Gif
+file://///suopfileshare01.bbn.hp.com/HPSW_BBN_teams/TeamPhil/IngoKarkat/bugs/ALM/capture_20140425-161757.Gif
+
+W:\htdocs\ingo\main.html
+\\wotan\www\htdocs\ingo\main.html
+file://///wotan/www/htdocs/ingo/main.html
+http://wotan/ingo/main.html

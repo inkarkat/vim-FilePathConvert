@@ -5,6 +5,7 @@
 "   - ingo/compat.vim autoload script
 "   - ingo/fs/path.vim autoload script
 "   - ingo/os.vim autoload script
+"   - ingo/query/confirm.vim autoload script
 "   - ingo/selection/frompattern.vim autoload script
 "   - ingo/str.vim autoload script
 "   - subs/URL.vim autoload script
@@ -162,20 +163,43 @@ endfunction
 
 function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
     " Search URL mapping values, use matching key.
-    let l:filespec = ingo#fs#path#Combine(ingo#fs#path#Normalize(a:filespec), '')
+    let l:filespec = ingo#fs#path#Combine(ingo#fs#path#Normalize(a:filespec, '/'), '')
 
     let l:urls = []
     for l:baseUrl in keys(g:FilePathConvert_UrlMappings)
 	let l:urlMapping = g:FilePathConvert_UrlMappings[l:baseUrl]
 	let l:urlFilespecPrefix = ingo#fs#path#Combine(ingo#fs#path#Normalize(l:urlMapping.filespec, '/'), '')
 	if ingo#str#StartsWith(l:filespec, l:urlFilespecPrefix)
-	    let l:url = ingo#fs#path#Combine(l:baseUrl, subs#URL#FilespecEncode(strpart(l:filespec, len(l:urlFilespecPrefix))))
+	    let l:filespecSuffix = strpart(a:filespec, len(l:urlFilespecPrefix))
+	    if l:baseUrl =~# s:uncPathExpr
+		let l:url = ingo#fs#path#Normalize(ingo#fs#path#Combine(l:baseUrl, l:filespecSuffix))
+	    else
+		let l:url = ingo#fs#path#Combine(l:baseUrl, subs#URL#FilespecEncode(l:filespecSuffix))
+	    endif
+
 	    call add(l:urls, l:url)
 	endif
     endfor
 
-echomsg '****' string(l:urls)
-    return get(l:urls, 0, '')
+    return s:QueryUrls(l:urls)
+endfunction
+function! s:QueryUrls( urls )
+    if len(a:urls) == 1
+	return a:urls[0]
+    endif
+
+    let l:defaultChoice = 1
+    let l:choice = confirm(
+    \   'Choose URL:',
+    \   join(ingo#query#confirm#AutoAccelerators(copy(a:urls), l:defaultChoice), "\n"),
+    \   l:defaultChoice
+    \)
+
+    if l:choice == 0
+	throw 'Aborted'
+    else
+	return a:urls[l:choice - 1]
+    endif
 endfunction
 
 function! FilePathConvert#UncToUrl( baseDir, filespec )

@@ -163,12 +163,12 @@ endfunction
 
 function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
     " Search URL mapping values, use matching key.
+    let l:urlMappings = s:GetUrlMappings()
     let l:filespec = ingo#fs#path#Combine(ingo#fs#path#Normalize(a:filespec, '/'), '')
 
     let l:urls = []
-    for l:baseUrl in keys(g:FilePathConvert_UrlMappings)
-	let l:urlMapping = g:FilePathConvert_UrlMappings[l:baseUrl]
-	let l:urlFilespecPrefix = ingo#fs#path#Combine(ingo#fs#path#Normalize(l:urlMapping.filespec, '/'), '')
+    for l:baseUrl in keys(l:urlMappings)
+	let l:urlFilespecPrefix = ingo#fs#path#Combine(ingo#fs#path#Normalize(l:urlMappings[l:baseUrl], '/'), '')
 	if ingo#str#StartsWith(l:filespec, l:urlFilespecPrefix)
 	    let l:filespecSuffix = strpart(a:filespec, len(l:urlFilespecPrefix))
 	    if l:baseUrl =~# s:uncPathExpr
@@ -206,14 +206,18 @@ function! FilePathConvert#UncToUrl( baseDir, filespec )
     return 'file:///' . subs#URL#FilespecEncode(a:filespec)
 endfunction
 
+function! s:GetUrlMappings()
+    return ingo#plugin#setting#GetBufferLocal('FilePathConvert_UrlMappings')
+endfunction
 function! s:UrlMappingToAbsolute( filespec )
     " Search URL mapping keys, use matching value.
-    for l:baseUrl in keys(g:FilePathConvert_UrlMappings)
+    let l:urlMappings = s:GetUrlMappings()
+    for l:baseUrl in keys(l:urlMappings)
 	let l:baseUrlPrefix = ingo#fs#path#Combine(l:baseUrl, '')
 	if ingo#str#StartsWith(ingo#fs#path#Normalize(a:filespec, '/'), ingo#fs#path#Normalize(l:baseUrlPrefix, '/'))
 	    let l:urlRest = strpart(a:filespec, len(l:baseUrlPrefix))
 	    let l:absoluteFilespec = ingo#fs#path#Combine(
-	    \   g:FilePathConvert_UrlMappings[l:baseUrl].filespec,
+	    \   l:urlMappings[l:baseUrl],
 	    \   subs#URL#Decode(l:urlRest)
 	    \)
 	    return ingo#fs#path#Normalize(l:absoluteFilespec)

@@ -27,16 +27,28 @@ RELATED WORKS								     *
 USAGE						       *FilePathConvert-usage*
 						   *<Leader>sf* *v_<Leader>sf*
 <Leader>sf		Convert the file whose name is under or after the
-			cursor.
+			cursor to a more local one:
+			URL ---> absolute -> relative (-> absolute) ~
+			UNC -/ ~
 {Visual}<Leader>sf	Convert the selected file name.
+						   *<Leader>sF* *v_<Leader>sF*
+<Leader>sF		Convert the file whose name is under or after the
+			cursor to a more global one:
+			relative -> absolute [ -> UNC ] -> URL (-> absolute) ~
+{Visual}<Leader>sF	Convert the selected file name.
 
 			A relative file path (../foo) is converted to an
 			absolute one (/home/user/dir/foo).
 			An absolute file path (/home/user/dir/foo) is
 			converted to a relative one (../foo).
 			On Windows, an absolute filespec starts with a drive
-			letter (C:\foo) or a file share in UNC notation
-			(\\host\share\foo).
+			letter (C:\foo).
+			A URL starts with a protocol like file://; the actual
+			protocol is ignored here. Or it is a Windows file
+			share in UNC notation (\\host\share\foo).
+			Unless a mapping of URL prefix to mount point exists
+			(see |g:FilePathConvert_UrlMappings|), this can only
+			be mapped to a generic share in UNC notation.
 
 EXAMPLE						     *FilePathConvert-example*
 
@@ -74,6 +86,15 @@ DEPENDENCIES					*FilePathConvert-dependencies*
 CONFIGURATION				       *FilePathConvert-configuration*
 
 For a permanent configuration, put the following commands into your |vimrc|:
+					       *g:FilePathConvert_UrlMappings*
+To be able to convert custom URLs, non-file:// protocols, and UNC paths to a
+local file system path, you need to specify the mapping of the base URL to a
+mount point, and for which host(s) this applies: >
+    let g:FilePathConvert_UrlMappings = {
+    \	'//win/share': {'filespec': 'D:/data', 'host': 'win'},
+    \	'file://///lin/share': {'filespec': '/var/srv', 'hostexpr': '^lin\(alias\)\?$'}
+    \}
+<
 						       *FilePathConvert-remap*
 If you want to use different mappings, map your keys to the
 <Plug>TextTFilePathConvert#... mapping targets _before_ sourcing the script
@@ -95,6 +116,10 @@ IDEAS						       *FilePathConvert-ideas*
 
 ==============================================================================
 HISTORY						     *FilePathConvert-history*
+
+1.10	RELEASEME
+- Add <Leader>sF variant that converts into more global filespecs to support
+  file:// URLs.
 
 1.00	06-Mar-2014
 First published version.

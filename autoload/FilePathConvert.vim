@@ -16,6 +16,10 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.010	29-Apr-2014	Implement conversion to / from UNC and URL paths
+"				via g:FilePathConvert_UrlMappings configuration
+"				and a user query in case there's no unique
+"				mapping.
 "   1.10.009	28-Apr-2014	Duplicate FilePathConvert#FilePathConvert() into
 "				FilePathConvert#ToLocal() and
 "				FilePathConvert#ToGlobal() to support file://
@@ -168,37 +172,41 @@ function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
 
     let l:urls = []
     for l:baseUrl in keys(l:urlMappings)
-	let l:urlFilespecPrefix = ingo#fs#path#Combine(ingo#fs#path#Normalize(l:urlMappings[l:baseUrl], '/'), '')
-	if ingo#str#StartsWith(l:filespec, l:urlFilespecPrefix)
-	    let l:filespecSuffix = strpart(a:filespec, len(l:urlFilespecPrefix))
-	    if l:baseUrl =~# s:uncPathExpr
-		let l:url = ingo#fs#path#Normalize(ingo#fs#path#Combine(l:baseUrl, l:filespecSuffix))
-	    else
-		let l:url = ingo#fs#path#Combine(l:baseUrl, subs#URL#FilespecEncode(l:filespecSuffix))
-	    endif
+	for l:mappedFilespec in ingo#list#Make(l:urlMappings[l:baseUrl])
+	    let l:urlFilespecPrefix = ingo#fs#path#Combine(ingo#fs#path#Normalize(l:mappedFilespec, '/'), '')
+	    if ingo#str#StartsWith(l:filespec, l:urlFilespecPrefix)
+		let l:filespecSuffix = strpart(a:filespec, len(l:urlFilespecPrefix))
+		if l:baseUrl =~# s:uncPathExpr
+		    let l:url = ingo#fs#path#Normalize(ingo#fs#path#Combine(l:baseUrl, l:filespecSuffix))
+		else
+		    let l:url = ingo#fs#path#Combine(l:baseUrl, subs#URL#FilespecEncode(l:filespecSuffix))
+		endif
 
-	    call add(l:urls, l:url)
-	endif
+		call add(l:urls, l:url)
+	    endif
+	endfor
     endfor
 
-    return s:QueryUrls(l:urls)
+    return s:Query('URL', l:urls)
 endfunction
-function! s:QueryUrls( urls )
-    if len(a:urls) == 1
-	return a:urls[0]
+function! s:Query( what, list )
+    if len(a:list) == 0
+	return ''
+    elseif len(a:list) == 1
+	return a:list[0]
     endif
 
     let l:defaultChoice = 1
     let l:choice = confirm(
-    \   'Choose URL:',
-    \   join(ingo#query#confirm#AutoAccelerators(copy(a:urls), l:defaultChoice), "\n"),
+    \   printf('Choose %s:', a:what),
+    \   join(ingo#query#confirm#AutoAccelerators(copy(a:list), l:defaultChoice), "\n"),
     \   l:defaultChoice
     \)
 
     if l:choice == 0
 	throw 'Aborted'
     else
-	return a:urls[l:choice - 1]
+	return a:list[l:choice - 1]
     endif
 endfunction
 
@@ -212,20 +220,24 @@ endfunction
 function! s:UrlMappingToAbsolute( filespec )
     " Search URL mapping keys, use matching value.
     let l:urlMappings = s:GetUrlMappings()
+
+    let l:absoluteFilespecs = []
     for l:baseUrl in keys(l:urlMappings)
 	let l:baseUrlPrefix = ingo#fs#path#Combine(l:baseUrl, '')
 	if ingo#str#StartsWith(ingo#fs#path#Normalize(a:filespec, '/'), ingo#fs#path#Normalize(l:baseUrlPrefix, '/'))
 	    let l:urlRest = strpart(a:filespec, len(l:baseUrlPrefix))
-	    let l:absoluteFilespec = ingo#fs#path#Combine(
-	    \   l:urlMappings[l:baseUrl],
-	    \   subs#URL#Decode(l:urlRest)
-	    \)
-	    return ingo#fs#path#Normalize(l:absoluteFilespec)
+	    for l:mappedFilespec in ingo#list#Make(l:urlMappings[l:baseUrl])
+		call add(l:absoluteFilespecs, ingo#fs#path#Combine(
+		\   l:mappedFilespec,
+		\   subs#URL#Decode(l:urlRest)
+		\))
+	    endfor
 	endif
     endfor
 
-    return ''
+    return s:Query('filespec', l:absoluteFilespecs)
 endfunction
+
 function! FilePathConvert#UncToAbsolute( baseDir, filespec )
     let l:absoluteFilespec = s:UrlMappingToAbsolute(a:filespec)
     if empty(l:absoluteFilespec)

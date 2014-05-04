@@ -9,6 +9,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.007	29-Apr-2014	Add g:FilePathConvert_UrlMappings configuration
+"				to support conversion to / from UNC and URL
+"				paths.
 "   1.10.006	28-Apr-2014	Add <Leader>sF variant that converts into more
 "				global filespecs to support file:// URLs.
 "   1.00.005	06-Mar-2014	TextTransformSelections.vim has been moved into
@@ -30,11 +33,7 @@ let g:loaded_FilePathConvert = 1
 "- configuration ---------------------------------------------------------------
 
 if ! exists('g:FilePathConvert_UrlMappings')
-    let g:FilePathConvert_UrlMappings = {
-    \   '//sake/install$': {'filespec': 'D:\install'},
-    \   '//wotan/www': {'filespec': 'W:\'},
-    \   'http://wotan/': {'filespec': 'W:\htdocs'},
-    \}
+    let g:FilePathConvert_UrlMappings = {}
 endif
 
 

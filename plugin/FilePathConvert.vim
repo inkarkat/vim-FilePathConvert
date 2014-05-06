@@ -2,6 +2,7 @@
 "
 " DEPENDENCIES:
 "   - FilePathConvert.vim autoload script
+"   - TextTransform.vim autoload script
 "
 " Copyright: (C) 2012-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.

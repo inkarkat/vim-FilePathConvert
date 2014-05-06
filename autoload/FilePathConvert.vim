@@ -187,6 +187,10 @@ function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
 	endfor
     endfor
 
+    if empty(l:urls)
+	throw 'No URL mapping defined for filespec ' . a:filespec
+    endif
+
     return s:Query('URL', l:urls)
 endfunction
 function! s:Query( what, list )

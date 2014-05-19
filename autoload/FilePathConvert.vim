@@ -16,6 +16,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.012	20-May-2014	Also handle complete mapped filespecs (i.e.
+"				without l:urlRest).
 "   1.10.011	07-May-2014	Don't attempt to :chdir when the current buffer
 "				has no name, and therefore its directory is also
 "				empty. This doesn't actually do harm, but is not
@@ -256,13 +258,17 @@ function! s:UrlMappingToAbsolute( filespec )
     let l:absoluteFilespecs = []
     for l:baseUrl in keys(l:urlMappings)
 	let l:baseUrlPrefix = ingo#fs#path#Combine(l:baseUrl, '')
-	if ingo#str#StartsWith(ingo#fs#path#Normalize(a:filespec, '/'), ingo#fs#path#Normalize(l:baseUrlPrefix, '/'))
+	if ingo#str#StartsWith(ingo#fs#path#Normalize(ingo#fs#path#Combine(a:filespec, ''), '/'), ingo#fs#path#Normalize(l:baseUrlPrefix, '/'))
 	    let l:urlRest = strpart(a:filespec, len(l:baseUrlPrefix))
 	    for l:mappedFilespec in ingo#list#Make(l:urlMappings[l:baseUrl])
-		call add(l:absoluteFilespecs, ingo#fs#path#Combine(
-		\   l:mappedFilespec,
-		\   subs#URL#Decode(l:urlRest)
-		\))
+		let l:absoluteFilespec = (empty(l:urlRest) ?
+		\   l:mappedFilespec :
+		\   ingo#fs#path#Combine(
+		\       l:mappedFilespec,
+		\       subs#URL#Decode(l:urlRest)
+		\   )
+		\)
+		call add(l:absoluteFilespecs, l:absoluteFilespec)
 	    endfor
 	endif
     endfor

@@ -28,13 +28,12 @@ USAGE						       *FilePathConvert-usage*
 						   *<Leader>sf* *v_<Leader>sf*
 <Leader>sf		Convert the file whose name is under or after the
 			cursor to a more local one:
-			URL ---> absolute -> relative (-> absolute) ~
-			UNC -/ ~
+			URL -> [ UNC -> ] absolute -> relative (-> absolute) ~
 {Visual}<Leader>sf	Convert the selected file name.
 						   *<Leader>sF* *v_<Leader>sF*
 <Leader>sF		Convert the file whose name is under or after the
 			cursor to a more global one:
-			relative -> absolute [ -> UNC ] -> URL (-> absolute) ~
+			relative -> absolute  -> [ UNC -> ] URL (-> UNC / abs) ~
 {Visual}<Leader>sF	Convert the selected file name.
 
 			A relative file path (../foo) is converted to an
@@ -86,15 +85,22 @@ DEPENDENCIES					*FilePathConvert-dependencies*
 CONFIGURATION				       *FilePathConvert-configuration*
 
 For a permanent configuration, put the following commands into your |vimrc|:
-					       *g:FilePathConvert_UrlMappings*
+	       *g:FilePathConvert_UrlMappings* *b:FilePathConvert_UrlMappings*
 To be able to convert custom URLs, non-file:// protocols, and UNC paths to a
-local file system path, you need to specify the mapping of the base URL to a
-mount point, and for which host(s) this applies: >
+local file system path, you need to specify the mapping of the base URL to
+mount point(s; you can configure a list of filespecs to cater for symbolic
+links etc.): >
     let g:FilePathConvert_UrlMappings = {
-    \	'//win/share': {'filespec': 'D:/data', 'host': 'win'},
-    \	'file://///lin/share': {'filespec': '/var/srv', 'hostexpr': '^lin\(alias\)\?$'}
+    \	'//win/share': 'D:/data',
+    \	'file://///lin/www/htdocs': '/var/srv/htdocs',
+    \	'http://lin/': '/var/srv/htdocs',
+    \	'file://///srv/user': ['/var/srv/user', '/home/user']
     \}
-<
+As the filespecs are system-specific, you probably want to define them for the
+current host; the |hostname()| function can help to write a conditional in
+case you're using a .vimrc shared across multiple systems.
+You can override the global mapping with a buffer-local one, too.
+
 						       *FilePathConvert-remap*
 If you want to use different mappings, map your keys to the
 <Plug>TextTFilePathConvert#... mapping targets _before_ sourcing the script
@@ -120,6 +126,8 @@ HISTORY						     *FilePathConvert-history*
 1.10	RELEASEME
 - Add <Leader>sF variant that converts into more global filespecs to support
   file:// URLs.
+- Handle conversion to / from UNC and URL paths via URL mappings configuation
+  g:FilePathConvert_UrlMappings.
 
 1.00	06-Mar-2014
 First published version.

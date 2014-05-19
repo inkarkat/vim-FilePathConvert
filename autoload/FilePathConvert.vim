@@ -16,6 +16,19 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.011	07-May-2014	Don't attempt to :chdir when the current buffer
+"				has no name, and therefore its directory is also
+"				empty. This doesn't actually do harm, but is not
+"				necessary.
+"				Detect failure of fnamemodify() to convert an
+"				inexistent relative path to an absolute one, and
+"				attempt to convert the upwards ../../ path
+"				separately.
+"				Add g:FilePathConvert_AdditionalIsFnamePattern
+"				to correctly grab URLs on Unix and Windows-style
+"				filespecs on Cygwin.
+"				On Cygwin, also consider C:\-style filespecs as
+"				absolute paths.
 "   1.10.010	29-Apr-2014	Implement conversion to / from UNC and URL paths
 "				via g:FilePathConvert_UrlMappings configuration
 "				and a user query in case there's no unique
@@ -44,14 +57,17 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 function! FilePathConvert#FileSelection()
-    call ingo#selection#frompattern#Select('v', '\f\+', line('.'))
+    call ingo#selection#frompattern#Select('v',
+    \   '\%(\f' . (empty(g:FilePathConvert_AdditionalIsFnamePattern) ? '' : '\|' . g:FilePathConvert_AdditionalIsFnamePattern) . '\)\+',
+    \   line('.')
+    \)
     return 1
 endfunction
 let s:uncPathExpr = '^[/\\]\{2}[^/\\]'
 function! s:GetType( filespec )
     if a:filespec =~# s:uncPathExpr  " UNC notation
 	return 'unc'
-    elseif a:filespec =~# '^[/\\]' || (ingo#os#IsWinOrDos() && a:filespec =~? '^\a:[/\\]')
+    elseif a:filespec =~# '^[/\\]' || ((ingo#os#IsWinOrDos() || ingo#os#IsCygwin()) && a:filespec =~? '^\a:[/\\]')
 	return 'abs'
     elseif a:filespec =~? '^[a-z+.-]\+:' " RFC 1738
 	return 'url'
@@ -66,7 +82,7 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
 	throw 'Not a relative file: ' . a:filespec
     endif
 
-    if expand('%:h') !=# '.'
+    if ! empty(expand('%')) && expand('%:h') !=# '.'
 	" Need to change into the file's directory first to get glob results
 	" relative to the file.
 	let l:save_cwd = getcwd()
@@ -76,6 +92,18 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
     try
 	let l:relativeFilespec = ingo#fs#path#Normalize(a:filespec)
 	let l:absoluteFilespec = fnamemodify(l:relativeFilespec, ':p')
+	if l:absoluteFilespec ==# l:relativeFilespec
+	    " From :h filename-modifiers: For a file name that does not exist
+	    " and does not have an absolute path the result is unpredictable.
+	    " On Windows, this seems to work, but it doesn't on Cygwin.
+	    " If the upwards ../../ path part does exist, we can convert that
+	    " part alone and concatenate again with the remainder as a
+	    " workaround.
+	    let [l:upwardPath, l:remainder] = matchlist(l:relativeFilespec, '^\(\%(\.\.[/\\]\)*\)\(.*\)$')[1:2]
+	    if ! empty(l:upwardPath)
+		let l:absoluteFilespec = fnamemodify(l:upwardPath, ':p') . l:remainder
+	    endif
+	endif
 "****D echomsg '****' string(a:baseDir) string(l:absoluteFilespec)
 	if strpart(l:absoluteFilespec, 0, len(a:baseDir)) ==# a:baseDir
 	    return l:absoluteFilespec

@@ -17,6 +17,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.013	21-May-2014	Handle case-insensitive file systems by choosing
+"				the correct comparison.
 "   1.10.012	20-May-2014	Also handle complete mapped filespecs (i.e.
 "				without l:urlRest).
 "				Use ingo#query#Confirm() to support automated
@@ -208,7 +210,7 @@ function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
     for l:baseUrl in keys(l:urlMappings)
 	for l:mappedFilespec in ingo#list#Make(l:urlMappings[l:baseUrl])
 	    let l:urlFilespecPrefix = ingo#fs#path#Combine(ingo#fs#path#Normalize(l:mappedFilespec, '/'), '')
-	    if ingo#str#StartsWith(l:filespec, l:urlFilespecPrefix)
+	    if ingo#str#StartsWith(l:filespec, l:urlFilespecPrefix, ingo#fs#path#IsCaseInsensitive(l:filespec))
 		let l:filespecSuffix = strpart(a:filespec, len(l:urlFilespecPrefix))
 		if l:baseUrl =~# s:uncPathExpr
 		    let l:url = ingo#fs#path#Normalize(empty(l:filespecSuffix) ?
@@ -268,7 +270,10 @@ function! s:UrlMappingToAbsolute( filespec )
     let l:absoluteFilespecs = []
     for l:baseUrl in keys(l:urlMappings)
 	let l:baseUrlPrefix = ingo#fs#path#Combine(l:baseUrl, '')
-	if ingo#str#StartsWith(ingo#fs#path#Normalize(ingo#fs#path#Combine(a:filespec, ''), '/'), ingo#fs#path#Normalize(l:baseUrlPrefix, '/'))
+	if ingo#str#StartsWith(
+	\   ingo#fs#path#Normalize(ingo#fs#path#Combine(a:filespec, ''), '/'), ingo#fs#path#Normalize(l:baseUrlPrefix, '/'),
+	\   ingo#fs#path#IsCaseInsensitive(a:filespec)
+	\)
 	    let l:urlRest = strpart(a:filespec, len(l:baseUrlPrefix))
 	    for l:mappedFilespec in ingo#list#Make(l:urlMappings[l:baseUrl])
 		let l:absoluteFilespec = (empty(l:urlRest) ?

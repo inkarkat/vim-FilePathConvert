@@ -2,13 +2,14 @@
 "
 " DEPENDENCIES:
 "   - ingo/avoidprompt.vim autoload script
+"   - ingo/codec/URL.vim autoload script
 "   - ingo/compat.vim autoload script
 "   - ingo/fs/path.vim autoload script
 "   - ingo/os.vim autoload script
+"   - ingo/query.vim autoload script
 "   - ingo/query/confirm.vim autoload script
 "   - ingo/selection/frompattern.vim autoload script
 "   - ingo/str.vim autoload script
-"   - subs/URL.vim autoload script
 "
 " Copyright: (C) 2012-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
@@ -18,6 +19,9 @@
 " REVISION	DATE		REMARKS
 "   1.10.012	20-May-2014	Also handle complete mapped filespecs (i.e.
 "				without l:urlRest).
+"				Use ingo#query#Confirm() to support automated
+"				testing.
+"				Use URL codec from ingo-library.
 "   1.10.011	07-May-2014	Don't attempt to :chdir when the current buffer
 "				has no name, and therefore its directory is also
 "				empty. This doesn't actually do harm, but is not
@@ -207,9 +211,15 @@ function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
 	    if ingo#str#StartsWith(l:filespec, l:urlFilespecPrefix)
 		let l:filespecSuffix = strpart(a:filespec, len(l:urlFilespecPrefix))
 		if l:baseUrl =~# s:uncPathExpr
-		    let l:url = ingo#fs#path#Normalize(ingo#fs#path#Combine(l:baseUrl, l:filespecSuffix))
+		    let l:url = ingo#fs#path#Normalize(empty(l:filespecSuffix) ?
+		    \   l:baseUrl :
+		    \   ingo#fs#path#Combine(l:baseUrl, l:filespecSuffix)
+		    \)
 		else
-		    let l:url = ingo#fs#path#Combine(l:baseUrl, subs#URL#FilespecEncode(l:filespecSuffix))
+		    let l:url = (empty(l:filespecSuffix) ?
+		    \   l:baseUrl :
+		    \   ingo#fs#path#Combine(l:baseUrl, ingo#codec#URL#FilespecEncode(l:filespecSuffix))
+		    \)
 		endif
 
 		call add(l:urls, l:url)
@@ -231,7 +241,7 @@ function! s:Query( what, list )
     endif
 
     let l:defaultChoice = 1
-    let l:choice = confirm(
+    let l:choice = ingo#query#Confirm(
     \   printf('Choose %s:', a:what),
     \   join(ingo#query#confirm#AutoAccelerators(copy(a:list), l:defaultChoice), "\n"),
     \   l:defaultChoice
@@ -245,7 +255,7 @@ function! s:Query( what, list )
 endfunction
 
 function! FilePathConvert#UncToUrl( baseDir, filespec )
-    return 'file:///' . subs#URL#FilespecEncode(a:filespec)
+    return 'file:///' . ingo#codec#URL#FilespecEncode(a:filespec)
 endfunction
 
 function! s:GetUrlMappings()
@@ -265,7 +275,7 @@ function! s:UrlMappingToAbsolute( filespec )
 		\   l:mappedFilespec :
 		\   ingo#fs#path#Combine(
 		\       l:mappedFilespec,
-		\       subs#URL#Decode(l:urlRest)
+		\       ingo#codec#URL#Decode(l:urlRest)
 		\   )
 		\)
 		call add(l:absoluteFilespecs, l:absoluteFilespec)
@@ -292,7 +302,7 @@ function! FilePathConvert#UrlToAbsolute( baseDir, filespec )
     " Fallback: Convert file: URLs to UNC path.
     if a:filespec =~# '^file://'
 	call ingo#msg#WarningMsg(ingo#avoidprompt#Truncate('No URL mappings defined for URL ' . a:filespec . '; converting to UNC path'))
-	return ingo#fs#path#Normalize('//' . subs#URL#Decode(matchstr(a:filespec, '^[a-z+.-]\+:/\+\zs.*$')))
+	return ingo#fs#path#Normalize('//' . ingo#codec#URL#Decode(matchstr(a:filespec, '^[a-z+.-]\+:/\+\zs.*$')))
     endif
 
     throw 'No URL mapping defined for URL ' . a:filespec

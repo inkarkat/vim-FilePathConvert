@@ -100,7 +100,7 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
     try
 	let l:relativeFilespec = ingo#fs#path#Normalize(a:filespec)
 	let l:absoluteFilespec = fnamemodify(l:relativeFilespec, ':p')
-	if l:absoluteFilespec ==# l:relativeFilespec
+	if ingo#str#Equals(l:absoluteFilespec, l:relativeFilespec, ingo#fs#path#IsCaseInsensitive(l:absoluteFilespec))
 	    " From :h filename-modifiers: For a file name that does not exist
 	    " and does not have an absolute path the result is unpredictable.
 	    " On Windows, this seems to work, but it doesn't on Cygwin.
@@ -113,7 +113,7 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
 	    endif
 	endif
 "****D echomsg '****' string(a:baseDir) string(l:absoluteFilespec)
-	if strpart(l:absoluteFilespec, 0, len(a:baseDir)) ==# a:baseDir
+	if ingo#str#Equals(strpart(l:absoluteFilespec, 0, len(a:baseDir)), a:baseDir, ingo#fs#path#IsCaseInsensitive(a:baseDir))
 	    return l:absoluteFilespec
 	else
 	    throw 'Link to outside of root dir: ' . l:absoluteFilespec
@@ -183,7 +183,7 @@ function! FilePathConvert#AbsoluteToRelative( baseDir, filespec )
 	let [l:currentHead , l:currentRest ] = s:HeadAndRest(l:current , l:pathSeparator)
 	let [l:absoluteHead, l:absoluteRest] = s:HeadAndRest(l:absolute, l:pathSeparator)
 "****D echomsg '####' string(l:currentHead) string(l:absoluteHead)
-	if l:currentHead ==# l:absoluteHead
+	if ingo#str#Equals(l:currentHead, l:absoluteHead, ingo#fs#path#IsCaseInsensitive(l:absoluteHead))
 	    let l:current  = l:currentRest
 	    let l:absolute = l:absoluteRest
 	else

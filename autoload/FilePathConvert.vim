@@ -114,6 +114,14 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
 	endif
 "****D echomsg '****' string(a:baseDir) string(l:absoluteFilespec)
 	if ingo#str#Equals(strpart(l:absoluteFilespec, 0, len(a:baseDir)), a:baseDir, ingo#fs#path#IsCaseInsensitive(a:baseDir))
+	    if ingo#fs#path#IsCaseInsensitive(a:baseDir) && fnamemodify(l:absoluteFilespec, ':t') !=# fnamemodify(l:relativeFilespec, ':t')
+		" When the relative filename's case differs from the actual one,
+		" fnamemodify() returns (on Windows) the actual case, but
+		" doesn't do that for path components with differing case. For
+		" consistency, use the case from the original, relative
+		" filespec.
+		return ingo#fs#path#Combine(fnamemodify(l:absoluteFilespec, ':h'), fnamemodify(l:relativeFilespec, ':t'))
+	    endif
 	    return l:absoluteFilespec
 	else
 	    throw 'Link to outside of root dir: ' . l:absoluteFilespec

@@ -19,6 +19,7 @@
 " REVISION	DATE		REMARKS
 "   1.10.013	21-May-2014	Handle case-insensitive file systems by choosing
 "				the correct comparison.
+"				Allow extension via b:basedir / b:baseurl pair.
 "   1.10.012	20-May-2014	Also handle complete mapped filespecs (i.e.
 "				without l:urlRest).
 "				Use ingo#query#Confirm() to support automated
@@ -269,7 +270,14 @@ function! FilePathConvert#UncToUrl( baseDir, filespec )
 endfunction
 
 function! s:GetUrlMappings()
-    return ingo#plugin#setting#GetBufferLocal('FilePathConvert_UrlMappings')
+    let l:urlMappings = ingo#plugin#setting#GetBufferLocal('FilePathConvert_UrlMappings')
+
+    " Allow extension via b:basedir / b:baseurl pair.
+    if exists('b:basedir') && exists('b:baseurl')
+	let l:urlMappings[b:baseurl] = b:basedir
+    endif
+
+    return l:urlMappings
 endfunction
 function! s:UrlMappingToAbsolute( filespec )
     " Search URL mapping keys, use matching value.

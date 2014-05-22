@@ -10,6 +10,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.008	07-May-2014	Add g:FilePathConvert_AdditionalIsFnamePattern
+"				to correctly grab URLs on Unix and Windows-style
+"				filespecs on Cygwin.
 "   1.10.007	29-Apr-2014	Add g:FilePathConvert_UrlMappings configuration
 "				to support conversion to / from UNC and URL
 "				paths.
@@ -35,6 +38,18 @@ let g:loaded_FilePathConvert = 1
 
 if ! exists('g:FilePathConvert_UrlMappings')
     let g:FilePathConvert_UrlMappings = {}
+endif
+
+if ! exists('g:FilePathConvert_AdditionalIsFnamePattern')
+    " On Unix, 'isfname' does not contain ":", but we like to grab URLs like
+    " file://..., too.
+    if ingo#os#IsCygwin()
+	" On Cygwin, additionally allow the backslash for interoperability with
+	" Windows-style filespecs.
+	let g:FilePathConvert_AdditionalIsFnamePattern = '[:\\]'
+    else
+	let g:FilePathConvert_AdditionalIsFnamePattern = '[:]'
+    endif
 endif
 
 

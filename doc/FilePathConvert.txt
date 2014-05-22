@@ -100,6 +100,9 @@ As the filespecs are system-specific, you probably want to define them for the
 current host; the |hostname()| function can help to write a conditional in
 case you're using a .vimrc shared across multiple systems.
 You can override the global mapping with a buffer-local one, too.
+						       *b:basedir* *b:baseurl*
+If you just want to add a single mapping for the current buffer, you can do
+that by defining both b:baseurl and b:basedir variables.
 
 						       *FilePathConvert-remap*
 If you want to use different mappings, map your keys to the

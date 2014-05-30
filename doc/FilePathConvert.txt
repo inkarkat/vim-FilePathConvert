@@ -126,7 +126,7 @@ IDEAS						       *FilePathConvert-ideas*
 ==============================================================================
 HISTORY						     *FilePathConvert-history*
 
-1.10	RELEASEME
+2.00	RELEASEME
 - Add <Leader>sF variant that converts into more global filespecs to support
   file:// URLs.
 - Handle conversion to / from UNC and URL paths via URL mappings configuation

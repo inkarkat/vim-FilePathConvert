@@ -126,12 +126,12 @@ IDEAS						       *FilePathConvert-ideas*
 ==============================================================================
 HISTORY						     *FilePathConvert-history*
 
-2.00	RELEASEME
+2.00	31-May-2014
 - Add <Leader>sF variant that converts into more global filespecs to support
   file:// URLs.
 - Handle conversion to / from UNC and URL paths via URL mappings configuation
   g:FilePathConvert_UrlMappings.
-*** You need to update to ingo-library (vimscript #4433) version 1.019! ***
+  *** You need to update to ingo-library (vimscript #4433) version 1.019! ***
 
 1.00	06-Mar-2014
 First published version.

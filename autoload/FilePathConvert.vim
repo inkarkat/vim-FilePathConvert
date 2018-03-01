@@ -5,6 +5,7 @@
 "   - ingo/codec/URL.vim autoload script
 "   - ingo/compat.vim autoload script
 "   - ingo/fs/path.vim autoload script
+"   - ingo/fs/path/split.vim autoload script
 "   - ingo/os.vim autoload script
 "   - ingo/query.vim autoload script
 "   - ingo/query/confirm.vim autoload script
@@ -17,10 +18,14 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"   1.10.013	21-May-2014	Handle case-insensitive file systems by choosing
+"   2.00.014	22-May-2014	Factor out ingo#fs#path#split#AtBasePath() for
+"				reuse.
+"				Canonicalize absolute filespecs to handle "/./"
+"				or "ignoredDir/../" path fragments.
+"   2.00.013	21-May-2014	Handle case-insensitive file systems by choosing
 "				the correct comparison.
 "				Allow extension via b:basedir / b:baseurl pair.
-"   1.10.012	20-May-2014	Also handle complete mapped filespecs (i.e.
+"   2.00.012	20-May-2014	Also handle complete mapped filespecs (i.e.
 "				without l:urlRest).
 "				Use ingo#query#Confirm() to support automated
 "				testing.
@@ -218,9 +223,8 @@ function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
     let l:urls = []
     for l:baseUrl in keys(l:urlMappings)
 	for l:mappedFilespec in ingo#list#Make(l:urlMappings[l:baseUrl])
-	    let l:urlFilespecPrefix = ingo#fs#path#Combine(ingo#fs#path#Normalize(l:mappedFilespec, '/'), '')
-	    if ingo#str#StartsWith(l:filespec, l:urlFilespecPrefix, ingo#fs#path#IsCaseInsensitive(l:filespec))
-		let l:filespecSuffix = strpart(a:filespec, len(l:urlFilespecPrefix))
+	    let l:filespecSuffix = ingo#fs#path#split#AtBasePath(a:filespec, l:mappedFilespec)
+	    if type(l:filespecSuffix) == type('')
 		if l:baseUrl =~# s:uncPathExpr
 		    let l:url = ingo#fs#path#Normalize(empty(l:filespecSuffix) ?
 		    \   l:baseUrl :
@@ -235,6 +239,7 @@ function! FilePathConvert#AbsoluteToUncOrUrl( baseDir, filespec )
 
 		call add(l:urls, l:url)
 	    endif
+	    unlet l:filespecSuffix
 	endfor
     endfor
 
@@ -285,12 +290,8 @@ function! s:UrlMappingToAbsolute( filespec )
 
     let l:absoluteFilespecs = []
     for l:baseUrl in keys(l:urlMappings)
-	let l:baseUrlPrefix = ingo#fs#path#Combine(l:baseUrl, '')
-	if ingo#str#StartsWith(
-	\   ingo#fs#path#Normalize(ingo#fs#path#Combine(a:filespec, ''), '/'), ingo#fs#path#Normalize(l:baseUrlPrefix, '/'),
-	\   ingo#fs#path#IsCaseInsensitive(a:filespec)
-	\)
-	    let l:urlRest = strpart(a:filespec, len(l:baseUrlPrefix))
+	let l:urlRest = ingo#fs#path#split#AtBasePath(a:filespec, l:baseUrl)
+	if type(l:urlRest) == type('')
 	    for l:mappedFilespec in ingo#list#Make(l:urlMappings[l:baseUrl])
 		let l:absoluteFilespec = (empty(l:urlRest) ?
 		\   l:mappedFilespec :
@@ -302,6 +303,7 @@ function! s:UrlMappingToAbsolute( filespec )
 		call add(l:absoluteFilespecs, l:absoluteFilespec)
 	    endfor
 	endif
+	unlet l:urlRest
     endfor
 
     return s:Query('filespec', l:absoluteFilespecs)
@@ -338,10 +340,16 @@ function! s:FilePathConvert( isToLocal, text )
     if l:type ==# 'rel'
 	return FilePathConvert#RelativeToAbsolute(l:rootDir, a:text)
     elseif l:type ==# 'abs'
+	" Though the filename has been determined as absolute, it may not yet be
+	" in canonical form; i.e. contain "/./" or "ignoredDir/../" path
+	" fragments, which would prevent a match with the base dir / URL
+	" mappings.
+	let l:absoluteFilespec = fnamemodify(a:text, ':p')
+
 	if a:isToLocal
-	    return FilePathConvert#AbsoluteToRelative(l:rootDir, a:text)
+	    return FilePathConvert#AbsoluteToRelative(l:rootDir, l:absoluteFilespec)
 	else
-	    return FilePathConvert#AbsoluteToUncOrUrl(l:rootDir, a:text)
+	    return FilePathConvert#AbsoluteToUncOrUrl(l:rootDir, l:absoluteFilespec)
 	endif
     elseif l:type ==# 'unc'
 	if a:isToLocal

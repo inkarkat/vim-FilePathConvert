@@ -1,6 +1,9 @@
 \\sake\install$\Applications\totalcmd\Total Commander.url
 \\sake\install$\Applications\totalcmd\ingo\sake\tcignore.txt
 
+O:\inbox\update.log
+D:\public\inbox\update.log
+
 \\suopfileshare01.bbn.hp.com\HPSW_BBN_teams\TeamPhil\IngoKarkat\bugs\ALM\capture_20140425-161757.Gif
 file://///suopfileshare01.bbn.hp.com/HPSW_BBN_teams/TeamPhil/IngoKarkat/bugs/ALM/capture_20140425-161757.Gif
 

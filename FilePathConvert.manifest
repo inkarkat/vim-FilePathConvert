@@ -1,4 +1,3 @@
-autoload/escapings.vim
 autoload/FilePathConvert.vim
 plugin/FilePathConvert.vim
 doc/FilePathConvert.txt

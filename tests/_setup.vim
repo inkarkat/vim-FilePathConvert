@@ -1,3 +1,5 @@
+call vimtest#AddDependency('vim-ingo-library')
+
 runtime plugin/FilePathConvert.vim
 let g:testdir = expand('<sfile>:p:h')
 let g:outsideDir = expand('<sfile>:p:h:h:h:h:h:h:h:h:h:h:h:h:h:h:h:h:h:h:h:h') . 'var/server/subgroup'

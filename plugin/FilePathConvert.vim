@@ -10,13 +10,13 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
-"   1.10.008	07-May-2014	Add g:FilePathConvert_AdditionalIsFnamePattern
+"   2.00.008	07-May-2014	Add g:FilePathConvert_AdditionalIsFnamePattern
 "				to correctly grab URLs on Unix and Windows-style
 "				filespecs on Cygwin.
-"   1.10.007	29-Apr-2014	Add g:FilePathConvert_UrlMappings configuration
+"   2.00.007	29-Apr-2014	Add g:FilePathConvert_UrlMappings configuration
 "				to support conversion to / from UNC and URL
 "				paths.
-"   1.10.006	28-Apr-2014	Add <Leader>sF variant that converts into more
+"   2.00.006	28-Apr-2014	Add <Leader>sF variant that converts into more
 "				global filespecs to support file:// URLs.
 "   1.00.005	06-Mar-2014	TextTransformSelections.vim has been moved into
 "				the TextTransform plugin.

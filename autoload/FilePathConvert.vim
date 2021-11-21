@@ -6,18 +6,23 @@
 "   - ingo/compat.vim autoload script
 "   - ingo/fs/path.vim autoload script
 "   - ingo/fs/path/split.vim autoload script
+"   - ingo/list.vim autoload script
+"   - ingo/msg.vim autoload script
 "   - ingo/os.vim autoload script
+"   - ingo/plugin/setting.vim autoload script
 "   - ingo/query.vim autoload script
 "   - ingo/query/confirm.vim autoload script
 "   - ingo/selection/frompattern.vim autoload script
 "   - ingo/str.vim autoload script
+"   - ingo/workingdir.vim autoload script
 "
-" Copyright: (C) 2012-2014 Ingo Karkat
+" Copyright: (C) 2012-2018 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   2.01.015	02-Mar-2018	Use ingo#workingdir#ChdirCommand().
 "   2.00.014	22-May-2014	Factor out ingo#fs#path#split#AtBasePath() for
 "				reuse.
 "				Canonicalize absolute filespecs to handle "/./"
@@ -100,7 +105,7 @@ function! FilePathConvert#RelativeToAbsolute( baseDir, filespec )
 	" Need to change into the file's directory first to get glob results
 	" relative to the file.
 	let l:save_cwd = getcwd()
-	let l:chdirCommand = (haslocaldir() ? 'lchdir!' : 'chdir!')
+	let l:chdirCommand = ingo#workingdir#ChdirCommand()
 	execute l:chdirCommand '%:p:h'
     endif
     try
